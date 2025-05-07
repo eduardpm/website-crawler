@@ -1,4 +1,4 @@
-SUPPORTED_WEBSITES = ["coolblue", "emag"]
+SUPPORTED_WEBSITES = ["coolblue", "emag", "alternate"]
 
 if __name__ == "__main__":
     while True:
@@ -12,6 +12,10 @@ if __name__ == "__main__":
             case "emag":
                 from emag.emag import crawl_emag
                 crawl_emag()
+                exit(0)
+            case "alternate":
+                from alternate.alternate import crawl_alternate
+                crawl_alternate()
                 exit(0)
             case "exit":
                 print("Exiting the program.")

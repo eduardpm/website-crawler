@@ -1,10 +1,10 @@
-from coolblue.page_structure import CURRENT_PRICE, GRID_PRODUCT, PREVIOUS_PRICE, SPECS, TITLE
-from coolblue.urls import M_2_NVMES, MAIN_URL, MAX_PAGES, RAMS, VIDEO_CARDS
+from alternate.page_structure import CURRENT_PRICE, GRID_PRODUCT, PREVIOUS_PRICE, SPECS, TITLE
+from alternate.urls import MAX_PAGES, VIDEO_CARDS
 from crawler import crawl_website
 
-def parse_coolblue(soup):
+def parse_alternate(soup):
     """
-    Parse the soup object to extract product information from Coolblue.
+    Parse the soup object to extract product information from Alternate.
     """
     products = []
     for product in soup.find_all(class_=GRID_PRODUCT):
@@ -13,10 +13,10 @@ def parse_coolblue(soup):
         if not product.find(class_=PREVIOUS_PRICE):
             continue
         title = product.find(class_=TITLE).get_text(strip=True)
-        link = MAIN_URL + product.find(class_=TITLE).find('a').get("href")
+        link = product.get("href")
         specs = product.find(class_=SPECS).get_text(strip=True)
-        previous_price = int(product.find(class_=PREVIOUS_PRICE).get_text(strip=True).split(",")[0])
-        current_price = int(product.find(class_=CURRENT_PRICE).get_text(strip=True).split(",")[0])
+        previous_price = float(product.find(class_=PREVIOUS_PRICE).get_text(strip=True).split("€")[1].replace(".","").replace(",", '.').strip())
+        current_price = float(product.find(class_=CURRENT_PRICE).get_text(strip=True).split("€")[1].replace(".","").replace(",", '.').strip())
 
         products.append({
             'title': title,
@@ -26,9 +26,9 @@ def parse_coolblue(soup):
             'current_price': current_price,
             'discount_percentage': round((previous_price - current_price) / previous_price * 100, 2)
         })
-    print_coolblue(products)
+    print_alternate(products)
 
-def print_coolblue(products):
+def print_alternate(products):
     """
     Print the product information in a readable format.
     """
@@ -41,32 +41,24 @@ def print_coolblue(products):
         print(f"Discount: {product['discount_percentage']}%")
         print("-" * 40)
 
-def crawl_coolblue():
+def crawl_alternate():
     def crawl_product(url):
         for page in range(1, MAX_PAGES + 1):
             url = url.format(page)
-            if not crawl_website(url, parse_coolblue):
+            if not crawl_website(url, parse_alternate):
                 print(f"Failed to crawl {url}. Next page likely not available.")
                 break
 
     while True:
         print("Choose a product type to crawl:")
-        print("1. M.2 NVMe")
-        print("2. RAM")
-        print("3. VIDEO CARDS")
-        print("4. Exit")
+        print("1. VIDEO CARDS")
+        print("2. Exit")
 
         choice = input("Enter your choice (1/2/3): ").strip()
         if choice == "1":
-            crawl_product(M_2_NVMES)
-            break
-        elif choice == "2":
-            crawl_product(RAMS)
-            break
-        elif choice == "3":
             crawl_product(VIDEO_CARDS)
             break
-        elif choice == "4":
+        elif choice == "2":
             print("Exiting the program.")
             break
         else:
