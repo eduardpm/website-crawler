@@ -1,8 +1,17 @@
-from coolblue.page_structure import CURRENT_PRICE, GRID_PRODUCT, PREVIOUS_PRICE, SPECS, TITLE
+from bs4 import BeautifulSoup
+from coolblue.page_structure import (
+    CURRENT_PRICE,
+    GRID_PRODUCT,
+    PREVIOUS_PRICE,
+    SPECS,
+    TITLE,
+)
 from coolblue.urls import M_2_NVMES, MAIN_URL, MAX_PAGES, RAMS, VIDEO_CARDS
-from crawler import crawl_website
+from crawler import process_urls
+from libs.models.products import Product
 
-def parse_coolblue(soup):
+
+def parse_coolblue(soup: BeautifulSoup) -> list[Product]:
     """
     Parse the soup object to extract product information from Coolblue.
     """
@@ -12,42 +21,34 @@ def parse_coolblue(soup):
         # if not, we can ignore the product
         if not product.find(class_=PREVIOUS_PRICE):
             continue
-        title = product.find(class_=TITLE).get_text(strip=True)
-        link = MAIN_URL + product.find(class_=TITLE).find('a').get("href")
-        specs = product.find(class_=SPECS).get_text(strip=True)
-        previous_price = int(product.find(class_=PREVIOUS_PRICE).get_text(strip=True).split(",")[0])
-        current_price = int(product.find(class_=CURRENT_PRICE).get_text(strip=True).split(",")[0])
 
-        products.append({
-            'title': title,
-            'link': link,
-            'specs': specs,
-            'previous_price': previous_price,
-            'current_price': current_price,
-            'discount_percentage': round((previous_price - current_price) / previous_price * 100, 2)
-        })
-    print_coolblue(products)
+        products.append(
+            Product(
+                title=product.find(class_=TITLE).get_text(strip=True),
+                link=MAIN_URL + product.find(class_=TITLE).find("a").get("href"),
+                specs=product.find(class_=SPECS).get_text(strip=True),
+                previous_price=int(
+                    product.find(class_=PREVIOUS_PRICE)
+                    .get_text(strip=True)
+                    .split(",")[0]
+                ),
+                current_price=int(
+                    product.find(class_=CURRENT_PRICE)
+                    .get_text(strip=True)
+                    .split(",")[0]
+                ),
+            )
+        )
+    return products
 
-def print_coolblue(products):
-    """
-    Print the product information in a readable format.
-    """
-    for product in products:
-        print(f"Title: {product['title']}")
-        print(f"Link: {product['link']}")
-        print(f"Specs: {product['specs']}")
-        print(f"Previous Price: {product['previous_price']}")
-        print(f"Current Price: {product['current_price']}")
-        print(f"Discount: {product['discount_percentage']}%")
-        print("-" * 40)
 
 def crawl_coolblue():
-    def crawl_product(url):
-        for page in range(1, MAX_PAGES + 1):
-            url = url.format(page)
-            if not crawl_website(url, parse_coolblue):
-                print(f"Failed to crawl {url}. Next page likely not available.")
-                break
+    def crawl_product(url_template: str) -> None:
+        urls = [url_template.format(page) for page in range(1, MAX_PAGES + 1)]
+        products = process_urls(urls, parse_coolblue)
+
+        for product in products:
+            print(product)
 
     while True:
         print("Choose a product type to crawl:")
