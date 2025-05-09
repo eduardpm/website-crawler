@@ -12,19 +12,19 @@ if __name__ == "__main__":
 
         match choice:
             case "coolblue":
-                from coolblue.coolblue import crawl_coolblue
+                from coolblue.crawler import COOLBLUE_CRAWLER
 
-                crawl_coolblue()
+                COOLBLUE_CRAWLER.crawl_all()
                 exit(0)
             case "emag":
-                from emag.emag import crawl_emag
+                from emag.crawler import EMAG_CRAWLER
 
-                crawl_emag()
+                EMAG_CRAWLER.crawl_all()
                 exit(0)
             case "alternate":
-                from alternate.alternate import crawl_alternate
+                from alternate.crawler import ALTERNATE_CRAWLER
 
-                crawl_alternate()
+                ALTERNATE_CRAWLER.crawl_all()
                 exit(0)
             case "exit":
                 print("Exiting the program.")
